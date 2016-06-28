@@ -55,7 +55,7 @@ function scan() {
   console.log("restart scanning ble devices .." + queue.getLength());
 
   setTimeout(function() { noble.startScanning(); }, 500);
-  setTimeout(function() { scan(); }, 10000);
+  // setTimeout(function() { scan(); }, 10000);
 
   /*
    * use intervals to restart scanning, see:
@@ -104,15 +104,31 @@ noble.on('discover', function(peripheral) {
   console.log('discovered:'+peripheral.advertisement.localName);
 
   var name = peripheral.advertisement.localName;
-  if(name !== undefined && name.startsWith("TwizCE2")) {
+  var twiz = "";
+  twiz = "TwizCE2";
+  twiz = "TwizC6C";
+
+  if(name !== undefined && (name.startsWith("TwizC6C") || name.startsWith("TwizCE2"))) {
 
     // console.log("sleep");
     // sleep(2000);
     // sleep(2000);
     // sleep(1000);
     // console.log("continue");
+    console.log("connecting? "+name);
+    setTimeout(function() {
+      console.log("attempting to connect to "+name);
 
-    /* TODO Timeout of 5 seconds required */
+    /* TODO Timeout of 5 seconds required? Or bug fixed? */
+
+    peripheral.once('connect',function() {
+      console.log("connected to twiz. " + peripheral.advertisement.localName);
+    });
+
+    peripheral.once('disconnect',function() {
+      console.log("disconnected from twiz." + peripheral.advertisement.localName);
+      scan();
+    });
 
     peripheral.connect(function(error) {
       console.log('connected to peripheral: ' + peripheral.advertisement.localName +' ( '+ peripheral.uuid+ ' )');
@@ -133,7 +149,7 @@ noble.on('discover', function(peripheral) {
               for(var k=0;k<data.length;k+=2) {
                   values.push(data.readIntBE(k, 2)); /* signed int */
               }
-              console.log(values);
+              console.log(peripheral.advertisement.localName+", "+values[0]+", "+values[1]+", "+values[2]);
 
               var n = Math.pow(2, 16);
               var rad = 0.0174533;
@@ -174,6 +190,9 @@ noble.on('discover', function(peripheral) {
         });
       });
     });
+
+  },5000);
+
   }
 });
 
