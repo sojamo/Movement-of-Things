@@ -1,0 +1,16 @@
+{
+	"name": "ble",
+	"description": "",
+	"version": "0.1.0",
+	"author": {
+		"name": "Andreas Schlegel",
+		"email": "andi@sojamo.de"
+	},
+	"dependencies": {
+		"noble": "1.6.0",
+		"ws": "1.1.0"
+	},
+	"keywords": [
+		"ble"
+	]
+}
