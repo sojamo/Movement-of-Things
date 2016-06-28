@@ -2,22 +2,46 @@
 var osc = require('osc-min');
 var udp = require("dgram");
 
-var x = 0 ,y =  0, z =  0;
-var nx = 0, ny = 0, nz = 0;
+var data = {};
 
-var accx = 0 ,accy =  0, accz =  0;
-var naccx = 0, naccy = 0, naccz = 0;
-var cnt = 0;
-var queue = new Queue();
+var address = "/twiz"; /* default osc address pattern */
+// address = "/wek/inputs"; /* wekinator address pattern */
+
+var remote = "127.0.0.1";
+
+var port = 12000; /* default osc port */
+// port = 5000; /* GRT */
+// port = 6448; /* wekinator */
+
+
+
+/* the twiz ids we will accept */
+var twiz = [];
+twiz.push('TwizC6C');
+twiz.push('TwizCE2');
+twiz.push('TwizCE6');
+twiz.push('TwizCF7');
+
+/* debug types */
+var debugMessages = [];
+// debugMessages.push('data');
+debugMessages.push('connect');
+debugMessages.push('disconnect');
+debugMessages.push('scan');
+debugMessages.push('discover');
+debugMessages.push('queue');
+debugMessages.push('osc');
+
+
 
 
 var sock = udp.createSocket("udp4", function(thePacket, rinfo) {
   // receive an OSC message
-  console.log('debug','received an OSC packet at '+wsListeningPort);
+  debug('osc','received an OSC packet at '+wsListeningPort);
   try {
     // send through WebSocketServer wss to all connected clients (browser)
     var packet = unpack(thePacket);
-    console.log(packet);
+    debug('osc',packet);
 
     /* a packet here is converted into an object which is
      * identifiable by its oscType value (message or bundle).
@@ -52,7 +76,7 @@ var unpack = function(thePacket) {
 var noble = require('noble');
 
 function scan() {
-  console.log("restart scanning ble devices .." + queue.getLength());
+  debug('scan', 'restart scanning ble devices ..');
 
   setTimeout(function() { noble.startScanning(); }, 500);
   // setTimeout(function() { scan(); }, 10000);
@@ -75,81 +99,68 @@ noble.on('stateChange', function(state) {
   if (state === 'poweredOn') {
     scan();
   } else {
-    console.log("stop scanning ..");
+    debug('scan', 'stop scanning ... ');
     noble.stopScanning();
   }
 });
 
 
 noble.on('disconnect', function(peripheral) {
-  console.log("disconnected: "+peripheral);
+  debug('disconnect', 'disconnected from ' + peripheral);
 });
 
 
 noble.on('connect', function(peripheral) {
-  console.log("connected: "+peripheral);
+  console.log('connect', 'connected to ' + peripheral);
 });
 
 
-function sleep(milliseconds) {
-  var start = new Date().getTime();
-  for (var i = 0; i < 1e7; i++) {
-    if ((new Date().getTime() - start) > milliseconds){
-      break;
-    }
-  }
-}
 
 noble.on('discover', function(peripheral) {
-  console.log('discovered:'+peripheral.advertisement.localName);
 
   var name = peripheral.advertisement.localName;
-  var twiz = "";
-  twiz = "TwizCE2";
-  twiz = "TwizC6C";
+  var delay = 100;
 
-  if(name !== undefined && (name.startsWith("TwizC6C") || name.startsWith("TwizCE2"))) {
 
-    // console.log("sleep");
-    // sleep(2000);
-    // sleep(2000);
-    // sleep(1000);
-    // console.log("continue");
-    console.log("connecting? "+name);
+  debug('connect', 'discovered: '+peripheral.advertisement.localName+" ( " +(twiz.indexOf(name) > -1 ? "registered":"not accepted" )+ " )");
+
+  if( twiz.indexOf(name) > -1 ) {
+    debug('connect', 'Starting to connect to ' + name + ', waiting ' + delay + 'ms.');
+
     setTimeout(function() {
-      console.log("attempting to connect to "+name);
+      debug('connect', 'attempting to connect to ' + name);
 
     /* TODO Timeout of 5 seconds required? Or bug fixed? */
 
     peripheral.once('connect',function() {
-      console.log("connected to twiz. " + peripheral.advertisement.localName);
+      debug('connect', 'connected to ' + peripheral.advertisement.localName);
     });
 
     peripheral.once('disconnect',function() {
-      console.log("disconnected from twiz." + peripheral.advertisement.localName);
+      debug('disconnect', 'Got disconnected from ' + peripheral.advertisement.localName);
       scan();
     });
 
     peripheral.connect(function(error) {
-      console.log('connected to peripheral: ' + peripheral.advertisement.localName +' ( '+ peripheral.uuid+ ' )');
+      debug('connect', 'connected to peripheral: ' + peripheral.advertisement.localName +' ( '+ peripheral.uuid+ ' )');
 
       peripheral.discoverServices(['1901'], function(error, services) {
-        console.log('discovered service:'+services[0]);
+        debug('discover', 'discovered service:'+services[0]);
 
         var service = services[0];
 
         service.discoverCharacteristics(['2b01'], function(error, characteristics) {
-          console.log('discovered characteristic');
+          debug('discover', 'discovered characteristic');
 
           var characteristic = characteristics[0];
-          characteristic.on('read', function(data, isNotification) {
+          characteristic.on('read', function(theData, isNotification) {
 
-            if(data.length==12) {
+            if(theData.length==12) {
               var values = [];
-              for(var k=0;k<data.length;k+=2) {
-                  values.push(data.readIntBE(k, 2)); /* signed int */
+              for(var k=0;k<theData.length;k+=2) {
+                  values.push(theData.readIntBE(k, 2)); /* signed int */
               }
-              console.log(peripheral.advertisement.localName+", "+values[0]+", "+values[1]+", "+values[2]);
+              debug('data', peripheral.advertisement.localName+"\t"+values[0]+", "+values[1]+", "+values[2]+", "+values[3]+", "+values[4]+", "+values[5]);
 
               var n = Math.pow(2, 16);
               var rad = 0.0174533;
@@ -160,77 +171,75 @@ noble.on('discover', function(peripheral) {
               var ey = rad * (values[4] * 360.0)/n;
               var ez = rad * (values[5] * 360.0)/n;
 
-              nx = ex;
-              ny = ey;
-              nz = ez;
-
-              naccx = ax;
-              naccy = ay;
-              naccz = az;
-
-              // console.log(ex,ey,ez);
+              var queue = data[peripheral.advertisement.localName].queue;
 
               if(queue.getLength()>10) {
-                console.log("removed "+queue.getLength()+" "+items);
+                debug('queue', 'removed ' +queue.getLength() + ' items from queue.');
                 queue.clear();
               }
-              queue.enqueue({'nx':ex, 'ny':ey, 'nz':ez, 'naccx':naccx, 'naccy':naccy, 'naccz':naccz });
-
-              cnt++;
-              // console.log((cnt)+"\t"+n+"\t"+":"+peripheral.uuid+"\t"+naccx+"\t"+naccy+"\t"+naccz+"\t"+nx+"\t"+ny+"\t"+nz);
-              // console.log((cnt)+"\t"+n+"\t"+":"+peripheral.uuid+"\t"+ax+"\t"+ay+"\t"+az+"\t"+ex+"\t"+ey+"\t"+ez);
+              queue.enqueue({'ex':ex, 'ey':ey, 'ez':ez, 'ax':ax, 'ay':ay, 'az':az });
             }
           });
 
           // true to enable notify
           characteristic.notify(true, function(error) {
-            console.log('start listening.');
+            debug( 'connect', 'start listening to ' + peripheral.advertisement.localName);
           });
 
         });
       });
     });
 
-  },5000);
+  }, delay);
 
   }
 });
 
+function debug(type, msg) {
+  if(debugMessages.indexOf(type)>-1) {
+    console.log(msg);
+  }
+}
 
-function upd() {
+
+function setup() {
+  for(var i in twiz) {
+      data[twiz[i]] = {'queue': new Queue(),'current':{'ax':0, 'ay':0, 'az':0, 'ex':0, 'ey':0, 'ez':0}};
+  }
+  loop();
+}
+
+
+function loop() {
     setTimeout(function() {
-
-      var address = "/twiz"; /* default osc address pattern */
-      // address = "/wek/inputs"; /* wekinator address pattern */
-
-      var port = 12000; /* default osc port */
-      // port = 5000; /* GRT */
-      // port = 6448; /* wekinator */
 
       var interpolate = true;
 
+      for(var key in data) {
+        if(key === 'TwizC6C') {
+          // console.log('reading '+key+' '+data[key].queue.getLength());
+          var state = data[key].queue.dequeue();
+          if(state !== undefined) {
+            data[key].current.ax = state.ax;
+            data[key].current.ay = state.ay;
+            data[key].current.az = state.az;
+            data[key].current.ex = state.ex;
+            data[key].current.ey = state.ey;
+            data[key].current.ez = state.ez;
+          }
 
-      /* evaluate current sensor data */
+          var buf;
+          buf = osc.toBuffer({
+            address: address,
+            args: [key, data[key].current.ax, data[key].current.ay, data[key].current.az, data[key].current.ex, data[key].current.ey, data[key].current.ez ]
+          });
+          sock.send(buf, 0, buf.length, port, remote);
+        }
 
-      var data = queue.dequeue();
 
-      if(data !== undefined) {
-        accx = data.naccx;
-        accy = data.naccy;
-        accz = data.naccz;
-        x = data.nx;
-        y = data.ny;
-        z = data.nz;
       }
 
-      var buf;
-      buf = osc.toBuffer({
-        address: address,
-        args: [accx,accy,accz,x,y,z]
-      });
-      sock.send(buf, 0, buf.length, port, "127.0.0.1");
-
-      upd();
+      loop();
 
     },20);
 }
@@ -239,11 +248,7 @@ function almostEqual(a,b,epsilon) {
   return Math.abs(a - b) < epsilon;
 }
 
-upd();
-
-
-
-
+setup();
 
 
 /*
