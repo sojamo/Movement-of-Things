@@ -9,7 +9,7 @@ var address = "/twiz"; /* default osc address pattern */
 
 var remote = "127.0.0.1";
 
-var port = 12000; /* default osc port */
+var port = 11000; /* default osc port */
 // port = 5000; /* GRT */
 // port = 6448; /* wekinator */
 
@@ -25,6 +25,7 @@ twiz.push('TwizCF7');
 /* debug types */
 var debugMessages = [];
 // debugMessages.push('data');
+debugMessages.push('debug');
 debugMessages.push('connect');
 debugMessages.push('disconnect');
 debugMessages.push('scan');
@@ -111,7 +112,7 @@ noble.on('disconnect', function(peripheral) {
 
 
 noble.on('connect', function(peripheral) {
-  console.log('connect', 'connected to ' + peripheral);
+  debug('connect', 'connected to ' + peripheral);
 });
 
 
@@ -134,10 +135,12 @@ noble.on('discover', function(peripheral) {
 
     peripheral.once('connect',function() {
       debug('connect', 'connected to ' + peripheral.advertisement.localName);
+      data[peripheral.advertisement.localName].isConnected = true;
     });
 
     peripheral.once('disconnect',function() {
       debug('disconnect', 'Got disconnected from ' + peripheral.advertisement.localName);
+      data[peripheral.advertisement.localName].isConnected = false;
       scan();
     });
 
@@ -167,9 +170,12 @@ noble.on('discover', function(peripheral) {
               var ax = (values[0] * 4.0)/n;
               var ay = (values[1] * 4.0)/n;
               var az = (values[2] * 4.0)/n;
+
               var ex = rad * (values[3] * 360.0)/n;
               var ey = rad * (values[4] * 360.0)/n;
               var ez = rad * (values[5] * 360.0)/n;
+
+              debug('debug',az, values[2], theData );
 
               var queue = data[peripheral.advertisement.localName].queue;
 
@@ -204,7 +210,7 @@ function debug(type, msg) {
 
 function setup() {
   for(var i in twiz) {
-      data[twiz[i]] = {'queue': new Queue(),'current':{'ax':0, 'ay':0, 'az':0, 'ex':0, 'ey':0, 'ez':0}};
+      data[twiz[i]] = {'queue': new Queue(), 'isConnected':false, 'current':{'ax':0, 'ay':0, 'az':0, 'ex':0, 'ey':0, 'ez':0}};
   }
   loop();
 }
@@ -216,8 +222,10 @@ function loop() {
       var interpolate = true;
 
       for(var key in data) {
-        if(key === 'TwizC6C') {
           // console.log('reading '+key+' '+data[key].queue.getLength());
+          if(data[key].isConnected === false) {
+            continue;
+          }
           var state = data[key].queue.dequeue();
           if(state !== undefined) {
             data[key].current.ax = state.ax;
@@ -230,13 +238,10 @@ function loop() {
 
           var buf;
           buf = osc.toBuffer({
-            address: address,
+            address: ("/twiz/"+key),
             args: [key, data[key].current.ax, data[key].current.ay, data[key].current.az, data[key].current.ex, data[key].current.ey, data[key].current.ez ]
           });
           sock.send(buf, 0, buf.length, port, remote);
-        }
-
-
       }
 
       loop();
