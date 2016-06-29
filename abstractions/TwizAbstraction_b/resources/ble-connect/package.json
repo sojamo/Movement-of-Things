@@ -8,7 +8,8 @@
 	},
 	"dependencies": {
 		"noble": "1.6.0",
-		"ws": "1.1.0"
+		"ws": "1.1.0",
+		"osc-min":"1.1.1"
 	},
 	"keywords": [
 		"ble"
