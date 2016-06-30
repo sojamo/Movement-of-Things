@@ -36,15 +36,41 @@ void render(Twiz theTwiz) {
   pushMatrix();
   fill(0, 255, 128);
   text(theTwiz.id, 0, -10);
-  Map p1 = toMap("scale", 10, "height", 50, "width", 200, "offset", 25);
-  lineGraph(theTwiz.history.get("ax"), p1);
-  translate(220, 0);
-  lineGraph(theTwiz.history.get("ay"), p1);
-  translate(220, 0);
-  lineGraph(theTwiz.history.get("az"), p1);
+  
+  {
+    Map p1 = toMap("scale", 10, "height", 50, "width", 200, "offset", 25);
+    Map p2 = toMap("scale", 50, "height", 50, "width", 200);
+    
+    pushMatrix();
+    lineGraph(theTwiz.history.get("ax"), p1);
+    translate(0, 70);
+    histogramGraph(theTwiz.history.get("ix"), p2);
+    fill(255);
+    rect(0,50,10,-theTwiz.intx*i(p2.get("scale"))*4);
+    popMatrix();
+    
+    pushMatrix();
+    translate(220, 0);
+    lineGraph(theTwiz.history.get("ay"), p1);
+    translate(0, 70);
+    histogramGraph(theTwiz.history.get("iy"), p2);
+    fill(255);
+    rect(0,50,10,-theTwiz.inty*i(p2.get("scale"))*4);
+    popMatrix();
+    
+    pushMatrix();
+    translate(440, 0);
+    lineGraph(theTwiz.history.get("az"), p1);
+    translate(0, 70);
+    histogramGraph(theTwiz.history.get("iz"), p2);
+    fill(255);
+    rect(0,50,10,-theTwiz.intz*i(p2.get("scale"))*4);
+    popMatrix();
+    
+  }
   popMatrix();
 
-  translate(0, 120);
+  translate(0, 200);
 
   pushMatrix();
   Map p2 = toMap("diameter", 100);
@@ -92,6 +118,22 @@ void lineGraph(List<Float> theData, Map theParams) {
   endShape(LINES);
   popMatrix();
 }
+void histogramGraph(List<Float> theData, Map theParams) {
+  float w = f(value(theParams, "width"), 100);
+  float h = f(value(theParams, "height"), 100);
+  float scale = f(value(theParams, "scale"), 1);
+  noStroke();
+  fill(255, 50);
+  rect(0, 0, w, h);
+  fill(255, 150);
+  pushMatrix();
+  float x=0;
+  for (float y : theData) {
+    rect(x++, h, 1, -abs(y*scale));
+  }
+  popMatrix();
+}
+
 
 void oscEvent(OscMessage m) {
   if (m.getAddress().startsWith("/twiz")) {
