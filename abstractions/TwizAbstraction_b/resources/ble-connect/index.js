@@ -1,3 +1,6 @@
+var config = require('./config.json');
+
+
 /* setup UDP socket to send and receive OSC packets */
 var osc = require('osc-min');
 var udp = require("dgram");
@@ -25,6 +28,7 @@ twiz.push('TwizCF7');
 /* debug types */
 var debugMessages = [];
 // debugMessages.push('data');
+debugMessages.push('info');
 debugMessages.push('debug');
 debugMessages.push('connect');
 debugMessages.push('disconnect');
@@ -33,6 +37,8 @@ debugMessages.push('discover');
 debugMessages.push('queue');
 debugMessages.push('osc');
 
+
+debug('info','sending data to remote address '+config.remote);
 
 
 
@@ -163,7 +169,13 @@ noble.on('discover', function(peripheral) {
               for(var k=0;k<theData.length;k+=2) {
                   values.push(theData.readIntBE(k, 2)); /* signed int */
               }
-              debug('data', peripheral.advertisement.localName+"\t"+values[0]+", "+values[1]+", "+values[2]+", "+values[3]+", "+values[4]+", "+values[5]);
+		debug('data',
+		      peripheral.advertisement.localName+"\t"+values[0]+
+		      ", "+values[1]+
+		      ", "+values[2]+
+		      ", "+values[3]+
+		      ", "+values[4]+
+		      ", "+values[5]);
 
               var n = Math.pow(2, 16);
               var rad = 0.0174533;
@@ -239,9 +251,15 @@ function loop() {
           var buf;
           buf = osc.toBuffer({
             address: ("/twiz/"+key),
-            args: [key, data[key].current.ax, data[key].current.ay, data[key].current.az, data[key].current.ex, data[key].current.ey, data[key].current.ez ]
+              args: [key,
+		     data[key].current.ax,
+		     data[key].current.ay,
+		     data[key].current.az,
+		     data[key].current.ex,
+		     data[key].current.ey,
+		     data[key].current.ez ]
           });
-          sock.send(buf, 0, buf.length, port, remote);
+          sock.send(buf, 0, buf.length, port, config.remote);
       }
 
       loop();
