@@ -167,7 +167,7 @@ noble.on('discover', function(peripheral) {
             if(theData.length==12) {
               var values = [];
               for(var k=0;k<theData.length;k+=2) {
-                  values.push(theData.readIntBE(k, 2)); /* signed int */
+                  values.push(theData.readInt16BE(k, 2)); /* signed int */
               }
 		debug('data',
 		      peripheral.advertisement.localName+"\t"+values[0]+
