@@ -1,3 +1,10 @@
+/* the twiz ids we will accept */
+var twiz = [];
+twiz.push('TwizC6C');
+twiz.push('TwizCE2');
+twiz.push('TwizCE6');
+twiz.push('TwizCF7'); // Add your device here
+
 var config = require('./config.json');
 
 
@@ -16,14 +23,6 @@ var port = 11000; /* default osc port */
 // port = 5000; /* GRT */
 // port = 6448; /* wekinator */
 
-
-
-/* the twiz ids we will accept */
-var twiz = [];
-twiz.push('TwizC6C');
-twiz.push('TwizCE2');
-twiz.push('TwizCE6');
-twiz.push('TwizCF7');
 
 /* debug types */
 var debugMessages = [];
