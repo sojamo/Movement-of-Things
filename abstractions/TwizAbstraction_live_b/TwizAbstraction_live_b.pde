@@ -9,10 +9,10 @@ ControlP5 cp;
 void setup() {
   size(1280, 600, P3D);
   smooth(8);
-  hint(DISABLE_DEPTH_TEST);  
+  hint(DISABLE_DEPTH_TEST);
   osc = new OscP5(this, 11000);
   cp = new ControlP5(this);
-  float y = height-40; 
+  float y = height-40;
   cp.addSlider("len").setPosition(20,y).setSize(200,20).setRange(10,400).setValue(10);
   cp.addToggle("x").setPosition(250,y).setSize(20,20).setValue(true);
   cp.addToggle("y").setPosition(290,y).setSize(20,20).setValue(true);
@@ -57,10 +57,10 @@ List<Data> log = new ArrayList();
 void render() {
   if (log.size()<=0) {
     return;
-  } 
+  }
 
-  /* render visual elements into the 3D scene without 
-   * clearing the render buffer while the program is running. 
+  /* render visual elements into the 3D scene without
+   * clearing the render buffer while the program is running.
    */
   lights();
   pushMatrix();
@@ -72,12 +72,12 @@ void render() {
   translate(-spacing*0.5*log.size(), 0);
 
   long l0 = Long.parseLong(log.get(0).time);
-  
+
   float t = cp.get("len").getValue();
   boolean bx = b(cp.get("x").getValue());
   boolean by = b(cp.get("y").getValue());
   boolean bz = b(cp.get("z").getValue());
-  
+
   for (int i=1; i<log.size(); i++) {
     Data data = log.get(i);
     long l1 = Long.parseLong(log.get(i).time);
@@ -92,11 +92,11 @@ void render() {
     float difx = abs(data.ax - log.get(i-1).ax) * 400;
     float dify = abs(data.ay - log.get(i-1).ay) * 400;
     float difz = abs(data.az - log.get(i-1).az) * 400;
-    
+
     if(bx) box(t   + (difx), 4, 4);
     if(by) box(4, t + (dify), 4);
     if(bz) box(4, 4, t + (difz));
-    
+
     popMatrix();
   }
   popMatrix();
