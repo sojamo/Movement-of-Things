@@ -7,13 +7,13 @@ OscP5 osc;
 ControlP5 cp;
 
 void setup() {
-  size(1280, 600, P3D);
+  size(1920, 1080, P3D);
   smooth(8);
   hint(DISABLE_DEPTH_TEST);
   osc = new OscP5(this, 11000);
   cp = new ControlP5(this);
   float y = height-40;
-  cp.addSlider("len").setPosition(20,y).setSize(200,20).setRange(10,400).setValue(10);
+  cp.addSlider("len").setPosition(20,y).setSize(200,20).setRange(900,1200).setValue(10);
   cp.addToggle("x").setPosition(250,y).setSize(20,20).setValue(true);
   cp.addToggle("y").setPosition(290,y).setSize(20,20).setValue(true);
   cp.addToggle("z").setPosition(330,y).setSize(20,20).setValue(true);
@@ -79,13 +79,13 @@ void render() {
     rotateY((data.pitch));
     rotateZ((data.roll));
     fill(255, 120);
-    float difx = abs(data.ax - log.get(i-1).ax) * 400;
-    float dify = abs(data.ay - log.get(i-1).ay) * 400;
-    float difz = abs(data.az - log.get(i-1).az) * 400;
+    float difx = abs(data.ax - log.get(i-1).ax) * 2 * t;
+    float dify = abs(data.ay - log.get(i-1).ay) * 2 * t;
+    float difz = abs(data.az - log.get(i-1).az) * 2 * t;
 
-    if(bx) box(t   + (difx), 4, 4);
-    if(by) box(4, t + (dify), 4);
-    if(bz) box(4, 4, t + (difz));
+    if(bx) box(t/2 + (difx), 4, 4);
+    if(by) box(4, t/2 + (dify), 4);
+    if(bz) box(4, 4, t/2 + (difz));
 
     popMatrix();
   }
@@ -106,7 +106,7 @@ class Data {
 
 void oscEvent(OscMessage m) {
 
-  if (log.size()==800) {
+  if (log.size()==width*2/3) {
     log.remove(0);
   }
   if (m.getAddress().startsWith("/twiz")) {
