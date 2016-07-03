@@ -130,7 +130,7 @@ void oscEvent(OscMessage m) {
     Data data = new Data();
     data.ax = ax;
     data.ay = ay;
-    data.ax = az;
+    data.az = az;
     data.yaw = yaw;
     data.pitch = pitch;
     data.roll = roll;
