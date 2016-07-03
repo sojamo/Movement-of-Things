@@ -14,8 +14,8 @@ void setup() {
   cp = new ControlP5(this);
   float y = height-40;
   cp.addSlider("len").setPosition(20,y).setSize(200,20).setRange(900,1200).setValue(10);
-  cp.addToggle("x").setPosition(250,y).setSize(20,20).setValue(true);
-  cp.addToggle("y").setPosition(290,y).setSize(20,20).setValue(true);
+  cp.addToggle("x").setPosition(250,y).setSize(20,20).setValue(false);
+  cp.addToggle("y").setPosition(290,y).setSize(20,20).setValue(false);
   cp.addToggle("z").setPosition(330,y).setSize(20,20).setValue(true);
   background(0);
   noStroke();
@@ -62,8 +62,8 @@ void render() {
   pushMatrix();
   translate(width/2, height/2);
   scale(scl);
-  //rotateX(frameCount*0.01);
   rotateY(rotY);
+  rotateY(frameCount*0.01);
   translate(-spacing*0.5*log.size(), 0);
 
   float t = cp.get("len").getValue();
