@@ -21,13 +21,10 @@ void setup() {
   noStroke();
 }
 
-int n = 0;
-int pos = 10;
 float rotY = 0, nrotY = 0;
 
 void draw() {
   rotY += (nrotY - rotY) *0.1;
-  n = 0;
   noStroke();
   fill(0, 255);
   rect(0, 0, width, height);
@@ -35,7 +32,6 @@ void draw() {
 }
 
 void keyPressed() {
-  pos = 0;
   background(0);
   log.clear();
 }
@@ -50,7 +46,7 @@ void mouseDragged() {
 
 float spacing = 4; /* spacing between each visual element */
 float scl = 0.25; /* zoom factor while rendering */
-int len = 200;
+int len;
 List<Data> log = new ArrayList();
 
 
@@ -67,11 +63,8 @@ void render() {
   translate(width/2, height/2);
   scale(scl);
   //rotateX(frameCount*0.01);
-  //rotateY(0.25);
   rotateY(rotY);
   translate(-spacing*0.5*log.size(), 0);
-
-  long l0 = Long.parseLong(log.get(0).time);
 
   float t = cp.get("len").getValue();
   boolean bx = b(cp.get("x").getValue());
@@ -80,9 +73,6 @@ void render() {
 
   for (int i=1; i<log.size(); i++) {
     Data data = log.get(i);
-    long l1 = Long.parseLong(log.get(i).time);
-    int dif = int(l1-l0);
-    l0 = l1;
     translate(spacing, 0);
     pushMatrix();
     rotateX((data.yaw));
@@ -135,8 +125,5 @@ void oscEvent(OscMessage m) {
     data.pitch = pitch;
     data.roll = roll;
     log.add(data);
-    //if (log.size()==100) {
-    //  log.remove(0);
-    //}
   }
 }
