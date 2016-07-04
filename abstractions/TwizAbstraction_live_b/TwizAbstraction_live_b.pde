@@ -79,13 +79,13 @@ void render() {
     rotateY((data.pitch));
     rotateZ((data.roll));
     fill(255, 120);
-    float difx = abs(data.ax - log.get(i-1).ax) * 2 * t;
-    float dify = abs(data.ay - log.get(i-1).ay) * 2 * t;
-    float difz = abs(data.az - log.get(i-1).az) * 2 * t;
+    float difx = abs(data.ax - log.get(i-1).ax) * 4 * t;
+    float dify = abs(data.ay - log.get(i-1).ay) * 4 * t;
+    float difz = abs(data.az - log.get(i-1).az) * 4 * t;
 
-    if(bx) box(t/2 + (difx), 4, 4);
-    if(by) box(4, t/2 + (dify), 4);
-    if(bz) box(4, 4, t/2 + (difz));
+    if(bx) box(t/4 + (difx), 4, 4);
+    if(by) box(4, t/4 + (dify), 4);
+    if(bz) box(4, 4, t/4 + (difz));
 
     popMatrix();
   }
