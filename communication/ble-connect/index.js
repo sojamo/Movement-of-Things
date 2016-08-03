@@ -84,7 +84,7 @@ function scan() {
 
 	setTimeout(function() { noble.startScanning(); }, 500);
 
-	setTimeout(function() { scan(); }, 10000);
+	setTimeout(function() { scan(); }, 20000);
 
 	/*
 	 * use intervals to restart scanning, see:
