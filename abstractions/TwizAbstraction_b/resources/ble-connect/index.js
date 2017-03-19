@@ -163,7 +163,7 @@ noble.on('discover', function(peripheral) {
           var characteristic = characteristics[0];
           characteristic.on('read', function(theData, isNotification) {
 
-            if(theData.length==12) {
+            if(theData.length==14) { // TODO: check
               var values = [];
               for(var k=0;k<theData.length;k+=2) {
                   values.push(theData.readInt16BE(k, 2)); /* signed int */
@@ -174,7 +174,8 @@ noble.on('discover', function(peripheral) {
 		      ", "+values[2]+
 		      ", "+values[3]+
 		      ", "+values[4]+
-		      ", "+values[5]);
+		      ", "+values[5]+
+		      ", "+values[6]);
 
               var n = Math.pow(2, 16);
               var rad = 0.0174533;
@@ -186,7 +187,9 @@ noble.on('discover', function(peripheral) {
               var ey = rad * (values[4] * 360.0)/n;
               var ez = rad * (values[5] * 360.0)/n;
 
-              debug('debug',az, values[2], theData );
+              var analog = (values[6] * 100.0)/n; // use percentage
+
+              debug('debug', analog, values[6]);
 
               var queue = data[peripheral.advertisement.localName].queue;
 
@@ -194,7 +197,7 @@ noble.on('discover', function(peripheral) {
                 debug('queue', 'removed ' +queue.getLength() + ' items from queue.');
                 queue.clear();
               }
-              queue.enqueue({'ex':ex, 'ey':ey, 'ez':ez, 'ax':ax, 'ay':ay, 'az':az });
+              queue.enqueue({'ex':ex, 'ey':ey, 'ez':ez, 'ax':ax, 'ay':ay, 'az':az, 'analog':analog });
             }
           });
 
@@ -221,7 +224,8 @@ function debug(type, msg) {
 
 function setup() {
   for(var i in twiz) {
-      data[twiz[i]] = {'queue': new Queue(), 'isConnected':false, 'current':{'ax':0, 'ay':0, 'az':0, 'ex':0, 'ey':0, 'ez':0}};
+      data[twiz[i]] = {'queue': new Queue(), 'isConnected':false,
+                       'current':{'ax':0, 'ay':0, 'az':0, 'ex':0, 'ey':0, 'ez':0, 'analog':0}};
   }
   loop();
 }
@@ -245,6 +249,7 @@ function loop() {
             data[key].current.ex = state.ex;
             data[key].current.ey = state.ey;
             data[key].current.ez = state.ez;
+            data[key].current.analog = state.analog;
           }
 
           var buf;
@@ -256,7 +261,8 @@ function loop() {
 		     data[key].current.az,
 		     data[key].current.ex,
 		     data[key].current.ey,
-		     data[key].current.ez ]
+		     data[key].current.ez,
+		     data[key].current.analog ]
           });
           sock.send(buf, 0, buf.length, port, config.remote);
       }
