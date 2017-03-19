@@ -66,7 +66,7 @@ void render() {
   rotateY(rotY);
   translate(-spacing*0.5*log.size(), 0);
 
-  float t = cp.get("len").getValue();
+  float t = cp.get("len").getValue();       // TODO replace with analog value ?
   boolean bx = b(cp.get("x").getValue());
   boolean by = b(cp.get("y").getValue());
   boolean bz = b(cp.get("z").getValue());
