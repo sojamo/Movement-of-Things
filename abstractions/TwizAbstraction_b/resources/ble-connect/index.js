@@ -1,9 +1,6 @@
 /* the twiz ids we will accept */
 var twiz = [];
-twiz.push('TwizC6C');
-twiz.push('TwizCE2');
-twiz.push('TwizCE6');
-twiz.push('TwizCF7'); // Add your device here
+twiz.push('TwizD2F'); // Add your device here
 
 var config = require('./config.json');
 
@@ -187,9 +184,11 @@ noble.on('discover', function(peripheral) {
               var ey = rad * (values[4] * 360.0)/n;
               var ez = rad * (values[5] * 360.0)/n;
 
-              var analog = (values[6] * 100.0)/n; // use percentage
-
-              debug('debug', analog, values[6]);
+              // var analog = (values[6] * 100.0)/(n/2);
+              var analog = (values[6] - 180) * 8;  // TODO dynamic offset removal
+              if (analog < 0) analog = 0;
+              var tmp = Math.round(analog / 10);
+              process.stdout.write( analog + " " + Array(tmp).join("*") + '\n');
 
               var queue = data[peripheral.advertisement.localName].queue;
 

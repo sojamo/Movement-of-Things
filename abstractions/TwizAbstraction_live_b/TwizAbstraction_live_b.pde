@@ -7,13 +7,14 @@ OscP5 osc;
 ControlP5 cp;
 
 void setup() {
-  size(1280, 600, P3D);
+  fullScreen(P3D);
+  //size(1280, 600, P3D);
   smooth(8);
   hint(DISABLE_DEPTH_TEST);
   osc = new OscP5(this, 11000);
   cp = new ControlP5(this);
   float y = height-40;
-  cp.addSlider("len").setPosition(20,y).setSize(200,20).setRange(10,400).setValue(10);
+  cp.addSlider("len").setPosition(20,y).setSize(200,20).setRange(100,1000).setValue(500);
   cp.addToggle("x").setPosition(250,y).setSize(20,20).setValue(true);
   cp.addToggle("y").setPosition(290,y).setSize(20,20).setValue(true);
   cp.addToggle("z").setPosition(330,y).setSize(20,20).setValue(true);
@@ -62,11 +63,11 @@ void render() {
   pushMatrix();
   translate(width/2, height/2);
   scale(scl);
-  //rotateX(frameCount*0.01);
-  rotateY(rotY);
+  rotateY(frameCount*0.003);
+  //rotateY(rotY);
   translate(-spacing*0.5*log.size(), 0);
 
-  float t = cp.get("len").getValue();       // TODO replace with analog value ?
+  float t = cp.get("len").getValue();
   boolean bx = b(cp.get("x").getValue());
   boolean by = b(cp.get("y").getValue());
   boolean bz = b(cp.get("z").getValue());
@@ -83,9 +84,9 @@ void render() {
     float dify = abs(data.ay - log.get(i-1).ay) * 400;
     float difz = abs(data.az - log.get(i-1).az) * 400;
 
-    if(bx) box(t   + (difx), 4, 4);
-    if(by) box(4, t + (dify), 4);
-    if(bz) box(4, 4, t + (difz));
+    if(bx) box(t   + (data.analog), 4, 4);
+    if(by) box(4, t + (data.analog), 4);
+    if(bz) box(4, 4, t + (data.analog));
 
     popMatrix();
   }
@@ -97,8 +98,9 @@ class Data {
   String time = "0";
   float ax, ay, az;
   float yaw, pitch, roll;
+  float analog;
   public String toString() {
-    return time+"\t"+ax+","+ay+","+az+"\t"+yaw+","+pitch+","+roll+"\n";
+    return time+"\t"+ax+","+ay+","+az+"\t"+yaw+","+pitch+","+roll+","+analog+"\n";
   }
 }
 
@@ -117,6 +119,7 @@ void oscEvent(OscMessage m) {
     float yaw = m.getFloatAt(4);
     float pitch = m.getFloatAt(5);
     float roll = m.getFloatAt(6);
+    float analog = m.getFloatAt(7);
     Data data = new Data();
     data.ax = ax;
     data.ay = ay;
@@ -124,6 +127,7 @@ void oscEvent(OscMessage m) {
     data.yaw = yaw;
     data.pitch = pitch;
     data.roll = roll;
+    data.analog = analog;
     log.add(data);
   }
 }
