@@ -84,6 +84,8 @@ void render() {
     float dify = abs(data.ay - log.get(i-1).ay) * 400;
     float difz = abs(data.az - log.get(i-1).az) * 400;
 
+    //t = data.analog;
+
     if(bx) box(t   + (data.analog), 4, 4);
     if(by) box(4, t + (data.analog), 4);
     if(bz) box(4, 4, t + (data.analog));
