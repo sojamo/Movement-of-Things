@@ -1,6 +1,8 @@
 /* the twiz ids we will accept */
 var twiz = [];
-twiz.push('TwizD2F'); // Add your device here
+twiz.push('TwizCE6'); // Add your device here
+twiz.push('TwD2F'); // Add your device here
+twiz.push('TwF18'); // Add your device here
 
 var config = require('./config.json');
 
@@ -160,7 +162,7 @@ noble.on('discover', function(peripheral) {
           var characteristic = characteristics[0];
           characteristic.on('read', function(theData, isNotification) {
 
-            if(theData.length==14) { // TODO: check
+            if(theData.length==16) {
               var values = [];
               for(var k=0;k<theData.length;k+=2) {
                   values.push(theData.readInt16BE(k, 2)); /* signed int */
@@ -172,7 +174,8 @@ noble.on('discover', function(peripheral) {
 		      ", "+values[3]+
 		      ", "+values[4]+
 		      ", "+values[5]+
-		      ", "+values[6]);
+		      ", "+values[6]+
+		      ", "+values[7]);
 
               var n = Math.pow(2, 16);
               var rad = 0.0174533;
@@ -185,10 +188,17 @@ noble.on('discover', function(peripheral) {
               var ez = rad * (values[5] * 360.0)/n;
 
               // var analog = (values[6] * 100.0)/(n/2);
-              var analog = (values[6] - 180) * 8;  // TODO dynamic offset removal
-              if (analog < 0) analog = 0;
-              var tmp = Math.round(analog / 10);
-              process.stdout.write( analog + " " + Array(tmp).join("*") + '\n');
+              var analog0 = (values[6] - 180) * 8;  // TODO dynamic offset removal
+              if (analog0 < 0) analog0 = 0;
+              var analog1 = (values[7] - 180) * 8;  // TODO dynamic offset removal
+              if (analog1 < 0) analog1 = 0;
+
+              var tmp0 = Math.round(analog0 / 100);
+              process.stdout.write( analog0 + " " + Array(tmp0).join("*") + '\n');
+
+              var tmp1 = Math.round(analog1 / 100);
+              process.stdout.write( Array(50).join(" ") +
+                                    analog1 + " " + Array(tmp1).join("*") + '\n');
 
               var queue = data[peripheral.advertisement.localName].queue;
 
@@ -196,7 +206,8 @@ noble.on('discover', function(peripheral) {
                 debug('queue', 'removed ' +queue.getLength() + ' items from queue.');
                 queue.clear();
               }
-              queue.enqueue({'ex':ex, 'ey':ey, 'ez':ez, 'ax':ax, 'ay':ay, 'az':az, 'analog':analog });
+              queue.enqueue({'ex':ex, 'ey':ey, 'ez':ez, 'ax':ax, 'ay':ay, 'az':az,
+                             'analog0':analog0, 'analog1':analog1 });
             }
           });
 
@@ -224,7 +235,8 @@ function debug(type, msg) {
 function setup() {
   for(var i in twiz) {
       data[twiz[i]] = {'queue': new Queue(), 'isConnected':false,
-                       'current':{'ax':0, 'ay':0, 'az':0, 'ex':0, 'ey':0, 'ez':0, 'analog':0}};
+                       'current':{'ax':0, 'ay':0, 'az':0, 'ex':0, 'ey':0, 'ez':0,
+                                  'analog0':0, 'analog1':0}};
   }
   loop();
 }
@@ -248,7 +260,8 @@ function loop() {
             data[key].current.ex = state.ex;
             data[key].current.ey = state.ey;
             data[key].current.ez = state.ez;
-            data[key].current.analog = state.analog;
+            data[key].current.analog0= state.analog0,
+            data[key].current.analog1= state.analog1;
           }
 
           var buf;
@@ -261,7 +274,8 @@ function loop() {
 		     data[key].current.ex,
 		     data[key].current.ey,
 		     data[key].current.ez,
-		     data[key].current.analog ]
+		     data[key].current.analog0,
+		     data[key].current.analog1 ]
           });
           sock.send(buf, 0, buf.length, port, config.remote);
       }
