@@ -24,7 +24,7 @@ var port = 11000; /* default osc port */
 
 /* debug types */
 var debugMessages = [];
-// debugMessages.push('data');
+debugMessages.push('data');
 debugMessages.push('info');
 debugMessages.push('debug');
 debugMessages.push('connect');
@@ -81,9 +81,7 @@ var noble = require('noble');
 
 function scan() {
 	debug('scan', 'restart scanning ble devices ..');
-
 	setTimeout(function() { noble.startScanning(); }, 500);
-
 	setTimeout(function() { scan(); }, 20000);
 
 	/*
@@ -126,7 +124,6 @@ noble.on('discover', function(peripheral) {
 	var name = peripheral.advertisement.localName;
 	var delay = 100;
 
-
 	debug('connect', 'discovered: '+peripheral.advertisement.localName+" ( " +(twiz.indexOf(name) > -1 ? "registered":"not accepted" )+ " )");
 
 	if( twiz.indexOf(name) > -1 ) {
@@ -161,11 +158,12 @@ noble.on('discover', function(peripheral) {
 
 						var characteristic = characteristics[0];
 						characteristic.on('read', function(theData, isNotification) {
-
 							if(theData.length==12) {
 								var values = [];
+								var unsigned = 32768;
 								for(var k=0;k<theData.length;k+=2) {
-									values.push(theData.readInt16BE(k, 2)); /* signed int */
+									var signed = unsigned - (theData.readInt16BE(k, 2)%unsigned);
+									values.push(signed); /* signed int */
 								}
 								debug('data',
 										peripheral.advertisement.localName+"\t"+values[0]+
@@ -200,7 +198,8 @@ noble.on('discover', function(peripheral) {
 									debug('queue', 'removed ' +queue.getLength() + ' items from queue.');
 									queue.clear();
 								}
-								queue.enqueue({'ex':ex, 'ey':ey, 'ez':ez, 'ax':ax, 'ay':ay, 'az':az });
+								console.log(theData);
+								queue.enqueue({'ex':ex, 'ey':ey, 'ez':ez, 'ax':ax, 'ay':ay, 'az':az, 'raw': theData});
 							}
 						});
 
@@ -215,7 +214,7 @@ noble.on('discover', function(peripheral) {
 
 		}, delay);
 
-	} 
+	}
 });
 
 var time = getTime();
@@ -275,9 +274,9 @@ function loop() {
 				data[key].current.ax,
 				data[key].current.ay,
 				data[key].current.az,
-					data[key].current.ex,
-					data[key].current.ey,
-						data[key].current.ez ]
+				data[key].current.ex,
+				data[key].current.ey,
+				data[key].current.ez ]
 			});
 			sock.send(buf, 0, buf.length, port, config.remote);
 		}
