@@ -21,6 +21,7 @@ var port = 11000; /* default osc port */
 // port = 5000; /* GRT */
 // port = 6448; /* wekinator */
 
+var serialInterface = "/dev/cu.usbmodem14512"
 
 /* debug types */
 var debugMessages = [];
@@ -58,7 +59,7 @@ var unpack = function(thePacket) {
 
 /* setup serial communication */
 var SerialPort = require("serialport");
-var bleNano = new SerialPort("/dev/cu.usbmodem146122", {
+var bleNano = new SerialPort(serialInterface, {
   baudRate: 115200,
 	parser: SerialPort.parsers.readline('\n')
 });
@@ -68,7 +69,7 @@ bleNano.on('open', function() {
     if (err) {
       return console.log('Error on write: ', err.message);
     }
-    console.log('message written');
+    console.log('websocket is open ...');
   });
 });
 
@@ -177,7 +178,7 @@ function setup() {
 	loop();
 }
 
-var frameRate = 25;
+var frameRate = 50;
 
 function loop() {
 	setTimeout(function() {
@@ -236,11 +237,11 @@ function loop() {
 var wss;
 
 function initSocket() {
-	console.log('init socket');
+
 	var wsListeningPort = 8081;
+	console.log('init websocket listening on port ', wsListeningPort);
 	var WebSocketServer = require('ws').Server;
 	wss = new WebSocketServer({ port: wsListeningPort });
-	console.log('init socket (2)');
 	wss.on('connection', function connection(ws) {
 		console.log('WebSocket running ', ws);
 	  ws.on('message', function incoming(message) {console.log(message);});

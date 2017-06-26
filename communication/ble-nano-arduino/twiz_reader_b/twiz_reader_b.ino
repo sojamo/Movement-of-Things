@@ -98,6 +98,34 @@ void connectionCallBack( const Gap::ConnectionCallbackParams_t *params ) {
   /* adjust connection parameters and listen for incoming data at a 40ms update-rate, default is 125ms */
   Gap::Handle_t gap_handle = params->handle;
   Gap::ConnectionParams_t new_params;
+  
+  /*
+   * What are these Connection Parameters?
+   * 
+   * Connection interval: 
+   * Determines how often the Central will ask for data from the Peripheral. 
+   * When the Peripheral requests an update, it supplies a maximum and a minimum wanted 
+   * interval. The connection interval must be between 7.5 ms and 4 s.
+   * 
+   * Slave latency: 
+   * By setting a non-zero slave latency, the Peripheral can choose to not answer 
+   * when the Central asks for data up to the slave latency number of times. However, 
+   * if the Peripheral has data to send, it can choose to send data at any time. 
+   * This enables a peripheral to stay sleeping for a longer time, if it doesn't 
+   * have data to send, but still send data fast if needed. The text book example of 
+   * such device is for example keyboard and mice, which want to be sleeping for 
+   * as long as possible when there is no data to send, but still have low latency 
+   * (and for the mouse: low connection interval) when needed.
+   * 
+   * Connection supervision timeout:
+   * This timeout determines the timeout from the last data exchange till a link 
+   * is considered lost. A Central will not start trying to reconnect before the timeout 
+   * has passed, so if you have a device which goes in and out of range often, and you 
+   * need to notice when that happens, it might make sense to have a short timeout.
+   */
+
+ 
+
   new_params.minConnectionInterval = 10;
   new_params.maxConnectionInterval = 32; /* this will be the update-rate 32*1.25 = 40ms */
   new_params.connectionSupervisionTimeout = 3200;

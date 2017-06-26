@@ -198,7 +198,6 @@ noble.on('discover', function(peripheral) {
 									debug('queue', 'removed ' +queue.getLength() + ' items from queue.');
 									queue.clear();
 								}
-								console.log(theData);
 								queue.enqueue({'ex':ex, 'ey':ey, 'ez':ez, 'ax':ax, 'ay':ay, 'az':az, 'raw': theData});
 							}
 						});
@@ -245,19 +244,23 @@ function setup() {
 	loop();
 }
 
-var frameRate = 50;
+var frameRate = 25;
 
 function loop() {
 	setTimeout(function() {
 
 		var interpolate = true;
 
+
+
 		for(var key in data) {
-			// console.log('reading '+key+' '+data[key].queue.getLength());
+
 			if(data[key].isConnected === false) {
 				continue;
 			}
+
 			var state = data[key].queue.dequeue();
+
 			if(state !== undefined) {
 				data[key].current.ax = state.ax;
 				data[key].current.ay = state.ay;
